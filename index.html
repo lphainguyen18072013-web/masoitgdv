@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GACHA FRUITS • Vinh Dương</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a001f 0%, #1a0033 50%, #2a0044 100%);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .neon-cyan { text-shadow: 0 0 20px #00f7ff, 0 0 40px #00f7ff; }
+        .neon-pink { text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; }
+        
+        .fruit-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(20, 10, 40, 0.9);
+            border: 3px solid #4b0082;
+        }
+        
+        .fruit-card:hover {
+            transform: scale(1.12) translateY(-8px);
+            box-shadow: 0 0 35px #ff00ff;
+            border-color: #ff00ff;
+        }
+        
+        .mythical { border-color: #ff00ff !important; box-shadow: 0 0 30px #ff00ff; }
+        .legendary { border-color: #a855f7 !important; box-shadow: 0 0 25px #a855f7; }
+        
+        .scroll-container {
+            scrollbar-width: none;
+        }
+        .scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .pointer {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-12 w-full">
+        
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-6xl font-black tracking-widest neon-pink">GACHA FRUITS</h1>
+            <p class="text-cyan-300 text-2xl mt-2">Vinh Dương • Blox Fruits Spinner</p>
+        </div>
+
+        <!-- Fruit Bar -->
+        <div class="relative mb-12">
+            <!-- Pointer -->
+            <div class="pointer absolute -top-6 left-1/2 -translate-x-1/2 z-30">
+                <div class="w-0 h-0 border-l-10 border-l-transparent border-r-10 border-r-transparent border-b-12 border-b-yellow-400"></div>
+            </div>
+
+            <div id="fruit-bar" 
+                 class="scroll-container flex gap-4 overflow-x-auto pb-6 px-4 snap-x snap-mandatory">
+                <!-- Fruits sẽ được JS render -->
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div id="result" class="hidden text-center mb-10">
+            <p class="text-yellow-300 text-xl mb-3">Bạn vừa roll được:</p>
+            <div id="result-card" class="inline-block fruit-card rounded-3xl p-6 text-center">
+                <img id="result-img" class="w-32 h-32 mx-auto mb-4" src="">
+                <div id="result-name" class="text-4xl font-bold mb-1"></div>
+                <div id="result-rarity" class="text-2xl font-semibold"></div>
+            </div>
+        </div>
+
+        <!-- Spin Button + Cooldown -->
+        <div class="flex flex-col items-center gap-6">
+            <button onclick="startGacha()" id="spin-btn"
+                    class="px-20 py-8 text-3xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 text-black rounded-3xl shadow-2xl hover:scale-110 transition-all flex items-center gap-5">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>SPIN GACHA</span>
+            </button>
+
+            <div id="cooldown-box" class="hidden text-center">
+                <p class="text-orange-300 text-lg">Chờ để spin tiếp...</p>
+                <div class="text-5xl font-mono font-bold text-orange-400" id="countdown">30</div>
+            </div>
+        </div>
+
+        <div class="text-center mt-16 text-xs text-gray-400">
+            Cooldown 30 giây • Mythical cực hiếm
+        </div>
+    </div>
+
+    <script>
+        const fruitsData = [
+            { id: 1, name: "Creation", rarity: "Legendary", color: "text-purple-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/8/8a/Portal_Fruit.png/revision/latest?cb=20231027115746" },
+            { id: 2, name: "Quake", rarity: "Legendary", color: "text-blue-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/4/42/Quake_Fruit.png/revision/latest?cb=20231027115754" },
+            { id: 3, name: "Kitsune", rarity: "Mythical", color: "text-pink-500", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/6/65/Kitsune_Fruit.png/revision/latest/scale-to-width-down/1200?cb=20241223162956" },
+            { id: 4, name: "Spirit", rarity: "Mythical", color: "text-cyan-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/6/66/Spirit_Fruit.png/revision/latest?cb=20240304190559" },
+            { id: 5, name: "T-Rex", rarity: "Mythical", color: "text-red-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/d/d9/T-Rex_Fruit.png/revision/latest?cb=20231226191220" },
+            { id: 6, name: "Dragon", rarity: "Mythical", color: "text-orange-500", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/c/c7/Dragon.png/revision/latest/scale-to-width/360?cb=20241231011212" },
+            { id: 7, name: "Dough", rarity: "Mythical", color: "text-rose-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/0/02/Dough_Fruit.png/revision/latest?cb=20231210155057" },
+            { id: 8, name: "Venom", rarity: "Mythical", color: "text-violet-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/d/d2/Venom_Fruit.png/revision/latest/scale-to-width-down/400?cb=20231027120425" },
+            { id: 9, name: "Shadow", rarity: "Legendary", color: "text-indigo-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/5/58/Shadow_Fruit.png/revision/latest?cb=20241229033053" },
+            { id: 10, name: "Buddha", rarity: "Legendary", color: "text-amber-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/d/df/Buddha_Fruit.png/revision/latest?cb=20231027115325" }
+        ];
+
+        let isSpinning = false;
+        let cooldown = 30;
+        let timerInterval = null;
+
+        function renderFruitBar() {
+            const container = document.getElementById('fruit-bar');
+            container.innerHTML = '';
+
+            fruitsData.forEach(fruit => {
+                const card = document.createElement('div');
+                card.className = `fruit-card min-w-[160px] snap-center rounded-3xl p-4 text-center flex-shrink-0`;
+                if (fruit.rarity === "Mythical") card.classList.add('mythical');
+                if (fruit.rarity === "Legendary") card.classList.add('legendary');
+
+                card.innerHTML = `
+                    <img src="${fruit.img}" class="w-24 h-24 mx-auto mb-3 object-contain">
+                    <div class="font-bold text-xl mb-1">${fruit.name}</div>
+                    <div class="${fruit.color} text-sm font-semibold">${fruit.rarity}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function getRandomFruit() {
+            const weights = [10, 15, 20, 25, 30]; // Common to Mythical
+            let total = weights.reduce((a,b)=>a+b, 0);
+            let rand = Math.random() * total;
+            
+            let sum = 0;
+            for (let i = 0; i < fruitsData.length; i++) {
+                sum += (fruitsData[i].rarity === "Mythical" ? 8 : 
+                       fruitsData[i].rarity === "Legendary" ? 15 : 25);
+                if (rand <= sum) return fruitsData[i];
+            }
+            return fruitsData[fruitsData.length - 1];
+        }
+
+        async function startGacha() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const btn = document.getElementById('spin-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ĐANG QUAY...`;
+
+            document.getElementById('result').classList.add('hidden');
+
+            // Animation cuộn ngang
+            const container = document.getElementById('fruit-bar');
+            let scrollSpeed = 35;
+            let scrollPos = 0;
+            const targetFruit = getRandomFruit();
+            const targetIndex = fruitsData.findIndex(f => f.id === targetFruit.id);
+
+            const animation = setInterval(() => {
+                scrollPos += scrollSpeed;
+                container.scrollLeft = scrollPos;
+
+                // Giảm tốc dần
+                if (scrollPos > 800) scrollSpeed = Math.max(4, scrollSpeed - 1.2);
+
+                // Dừng gần target
+                if (scrollSpeed <= 6 && Math.abs(container.scrollLeft - (targetIndex * 180)) < 60) {
+                    clearInterval(animation);
+                    showResult(targetFruit);
+                }
+            }, 16);
+        }
+
+        function showResult(fruit) {
+            isSpinning = false;
+
+            document.getElementById('result-img').src = fruit.img;
+            document.getElementById('result-name').textContent = fruit.name;
+            document.getElementById('result-rarity').innerHTML = `
+                <span class="${fruit.color}">${fruit.rarity}</span>
+            `;
+            document.getElementById('result').classList.remove('hidden');
+
+            // Confetti nếu Mythical
+            if (fruit.rarity === "Mythical") launchConfetti();
+
+            startCooldown();
+        }
+
+        function startCooldown() {
+            let time = cooldown;
+            const countdownEl = document.getElementById('countdown');
+            const box = document.getElementById('cooldown-box');
+            box.classList.remove('hidden');
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                time--;
+                countdownEl.textContent = time;
+
+                if (time <= 0) {
+                    clearInterval(timerInterval);
+                    box.classList.add('hidden');
+                    const btn = document.getElementById('spin-btn');
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-spinner"></i> <span>SPIN GACHA</span>`;
+                }
+            }, 1000);
+        }
+
+        function launchConfetti() {
+            for (let i = 0; i < 200; i++) {
+                setTimeout(() => {
+                    const c = document.createElement('div');
+                    c.style.cssText = `position:fixed; left:${Math.random()*100}vw; top:-20px; width:12px; height:12px; 
+                                      background:${['#ff00ff','#00f7ff','#ffff00'][Math.floor(Math.random()*3)]}; 
+                                      z-index:9999; border-radius:50%; opacity:0.9;`;
+                    document.body.appendChild(c);
+                    
+                    let y = 0;
+                    const fall = setInterval(() => {
+                        y += 10 + Math.random() * 8;
+                        c.style.top = y + 'px';
+                        c.style.transform = `rotate(${y*6}deg)`;
+                        if (y > window.innerHeight + 50) {
+                            clearInterval(fall);
+                            c.remove();
+                        }
+                    }, 20);
+                }, i * 2);
+            }
+        }
+
+        // Khởi tạo
+        window.onload = () => {
+            renderFruitBar();
+            console.log('%cGacha Fruits Horizontal - Siêu đẹp như yêu cầu!', 'color:#ff00ff; font-size:16px');
+        };
+    </script>
+</body>
+</html>
