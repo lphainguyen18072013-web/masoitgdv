@@ -3,249 +3,585 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GACHA FRUITS • Vinh Dương</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <title>Wolvesville Master Edition | Professional Arena 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a001f 0%, #1a0033 50%, #2a0044 100%);
-            min-height: 100vh;
-            overflow: hidden;
+        :root {
+            --bg: #020408;
+            --surface: #0a0d1a;
+            --surface-light: #161b33;
+            --accent: #7d5fff;
+            --accent-glow: rgba(125, 95, 255, 0.4);
+            --text-main: #ffffff;
+            --text-sub: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --wolf: #ff4d4d;
+            --seer: #3498db;
+            --guard: #2ecc71;
+            --hunter: #f1c40f;
+            --neon-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent);
         }
+
+        /* --- RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
         
-        .neon-cyan { text-shadow: 0 0 20px #00f7ff, 0 0 40px #00f7ff; }
-        .neon-pink { text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; }
-        
-        .fruit-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            background: rgba(20, 10, 40, 0.9);
-            border: 3px solid #4b0082;
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
         }
-        
-        .fruit-card:hover {
-            transform: scale(1.12) translateY(-8px);
-            box-shadow: 0 0 35px #ff00ff;
-            border-color: #ff00ff;
+
+        /* --- LOBBY SCREEN --- */
+        #entry-screen {
+            position: fixed; inset: 0; z-index: 2000;
+            background: radial-gradient(circle at center, #1a1b3a 0%, #020408 100%);
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        .mythical { border-color: #ff00ff !important; box-shadow: 0 0 30px #ff00ff; }
-        .legendary { border-color: #a855f7 !important; box-shadow: 0 0 25px #a855f7; }
-        
-        .scroll-container {
-            scrollbar-width: none;
+
+        .auth-card {
+            background: var(--surface);
+            padding: 60px;
+            border-radius: 50px;
+            width: 500px;
+            border: 1px solid var(--border);
+            text-align: center;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.9);
+            animation: cardEntrance 1s ease-out;
         }
-        .scroll-container::-webkit-scrollbar {
-            display: none;
+
+        .auth-card h1 { 
+            font-family: 'Space Grotesk'; 
+            font-size: 45px; 
+            margin-bottom: 10px; 
+            letter-spacing: -2px; 
+            font-weight: 800;
         }
+        .auth-card h1 span { color: var(--accent); text-shadow: var(--neon-shadow); }
+
+        .input-wrapper { position: relative; margin-top: 40px; margin-bottom: 30px; }
+        input { 
+            width: 100%; padding: 22px; background: #000; border: 2px solid var(--border); 
+            border-radius: 24px; color: #fff; font-size: 18px; transition: 0.4s;
+            text-align: center; font-weight: 600;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+
+        .btn-group { display: flex; gap: 20px; }
+        .btn {
+            flex: 1; padding: 20px; border-radius: 22px; border: none; font-weight: 800;
+            cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: inherit; text-transform: uppercase; font-size: 14px; letter-spacing: 1px;
+        }
+        .btn-primary { background: var(--accent); color: white; box-shadow: 0 10px 25px var(--accent-glow); }
+        .btn-secondary { background: var(--surface-light); color: white; border: 1px solid var(--border); }
+        .btn:hover { transform: translateY(-8px) scale(1.02); filter: brightness(1.2); }
+        .btn:active { transform: translateY(0) scale(0.98); }
+
+        /* --- GAME MAIN LAYOUT --- */
+        #main-app { display: none; height: 100vh; grid-template-rows: 90px 1fr 120px; opacity: 0; transition: 1s; }
+        #main-app.show { opacity: 1; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 50px; background: var(--surface); border-bottom: 1px solid var(--border);
+            z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .room-badge { 
+            background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 15px;
+            font-family: 'Space Grotesk'; font-weight: 700; color: var(--text-sub);
+        }
+        .room-badge span { color: var(--accent); margin-left: 8px; }
+
+        .game-status { font-weight: 800; text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); }
+
+        main { display: grid; grid-template-columns: 1fr 450px; gap: 30px; padding: 30px; overflow: hidden; }
+
+        /* --- PLAYER TILES AREA --- */
+        #player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 25px; overflow-y: auto; padding-right: 15px; padding-bottom: 40px;
+        }
+
+        .player-tile {
+            background: var(--surface); border-radius: 40px; padding: 25px;
+            border: 2px solid transparent; position: relative;
+            transition: 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            perspective: 1200px; text-align: center;
+            cursor: default;
+        }
+
+        .player-tile.is-me { border-color: rgba(125, 95, 255, 0.3); background: linear-gradient(145deg, #0d1121, #0a0d1a); }
         
-        .pointer {
-            animation: pulse 1.5s infinite;
+        /* Neon Focus Effect cho thẻ bài chính chủ */
+        .player-tile.active-focus { 
+            border-color: var(--accent); 
+            box-shadow: var(--neon-shadow); 
+            animation: neonPulse 2s infinite;
         }
+
+        .player-tile.targetable { 
+            border: 2px dashed var(--accent); 
+            cursor: pointer; 
+            animation: targetHint 1.5s infinite; 
+        }
+        .player-tile.targetable:hover { transform: scale(1.05); background: rgba(125, 95, 255, 0.1); }
+
+        .player-tile.dead { opacity: 0.15; filter: grayscale(1); pointer-events: none; transform: scale(0.9); }
+
+        /* 3D Card Flip System */
+        .card-container {
+            position: relative; width: 160px; height: 220px; margin: 0 auto 20px;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .player-tile.revealed .card-container { transform: rotateY(180deg); }
+
+        .card-side {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            border-radius: 20px; overflow: hidden; border: 4px solid rgba(255,255,255,0.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        .card-front { 
+            background: #161b33; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .card-front img.avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--accent); margin-bottom: 10px; }
+        
+        .card-back { transform: rotateY(180deg); background: #000; }
+        .card-back img.role-img { width: 100%; height: 100%; object-fit: cover; }
+
+        .player-name { font-weight: 800; font-size: 18px; margin-bottom: 5px; }
+        .player-meta { font-size: 11px; color: var(--text-sub); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Vote Counter */
+        .vote-badge {
+            position: absolute; top: -10px; right: -10px; background: var(--wolf);
+            color: white; width: 35px; height: 35px; border-radius: 50%;
+            display: none; align-items: center; justify-content: center;
+            font-weight: 900; font-family: 'Space Grotesk'; box-shadow: 0 5px 15px rgba(255, 77, 77, 0.4);
+            z-index: 5;
+        }
+
+        /* --- SIDEBAR & LOGS --- */
+        .sidebar { background: var(--surface); border-radius: 45px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow); }
+        .sidebar-header { padding: 25px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 800; color: var(--text-sub); letter-spacing: 2px; text-transform: uppercase; }
+        #game-feed { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 15px; }
+        .feed-item { 
+            padding: 18px; border-radius: 24px; background: rgba(255,255,255,0.02); font-size: 14px; 
+            line-height: 1.6; animation: itemIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 6px solid #333; 
+        }
+        .feed-item.sys { border-left-color: var(--accent); color: var(--accent); font-weight: 700; background: rgba(125, 95, 255, 0.05); }
+        .feed-item.wolf { border-left-color: var(--wolf); color: var(--wolf); }
+        .feed-item.vote { border-left-color: #f1c40f; color: #f1c40f; }
+
+        /* --- ACTION OVERLAYS --- */
+        #night-overlay {
+            position: fixed; inset: 0; background: rgba(2, 3, 8, 0.98); backdrop-filter: blur(25px);
+            z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center;
+            transition: 0.5s;
+        }
+        #night-overlay.is-active-turn { background: rgba(2, 3, 8, 0.4); backdrop-filter: blur(3px); pointer-events: none; }
+
+        .timer-circle {
+            width: 140px; height: 140px; border-radius: 50%; border: 8px solid var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 55px; font-weight: 900; font-family: 'Space Grotesk';
+            color: var(--accent); margin-bottom: 35px; box-shadow: var(--neon-shadow);
+        }
+
+        .phase-instruction { 
+            font-size: 32px; font-weight: 800; text-transform: uppercase; letter-spacing: 5px; 
+            text-align: center; max-width: 80%; line-height: 1.2;
+        }
+
+        /* --- FOOTER --- */
+        footer { background: var(--surface); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 60px; }
+        .my-role-info { display: flex; align-items: center; gap: 20px; }
+        .role-label { font-family: 'Space Grotesk'; font-size: 28px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: -1px; }
+
+        /* --- ANIMATIONS --- */
+        @keyframes cardEntrance { from { opacity: 0; transform: translateY(50px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes neonPulse { 0%, 100% { opacity: 1; box-shadow: var(--neon-shadow); } 50% { opacity: 0.8; box-shadow: 0 0 45px var(--accent); } }
+        @keyframes targetHint { 0% { transform: scale(1); border-color: var(--accent); } 50% { transform: scale(1.03); border-color: white; } 100% { transform: scale(1); border-color: var(--accent); } }
+        @keyframes itemIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-    <div class="max-w-6xl mx-auto px-6 py-12 w-full">
-        
-        <!-- Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-6xl font-black tracking-widest neon-pink">GACHA FRUITS</h1>
-            <p class="text-cyan-300 text-2xl mt-2">Vinh Dương • Blox Fruits Spinner</p>
-        </div>
+<body>
 
-        <!-- Fruit Bar -->
-        <div class="relative mb-12">
-            <!-- Pointer -->
-            <div class="pointer absolute -top-6 left-1/2 -translate-x-1/2 z-30">
-                <div class="w-0 h-0 border-l-10 border-l-transparent border-r-10 border-r-transparent border-b-12 border-b-yellow-400"></div>
+    <div id="entry-screen">
+        <div class="auth-card">
+            <h1>WOLVES<span>VILLE</span></h1>
+            <p style="color: var(--text-sub); font-size: 14px; font-weight: 600;">PROFESSIONAL ARENA EDITION</p>
+            
+            <div class="input-wrapper">
+                <input type="text" id="username-input" placeholder="Nhập biệt danh của bạn..." maxlength="15">
             </div>
 
-            <div id="fruit-bar" 
-                 class="scroll-container flex gap-4 overflow-x-auto pb-6 px-4 snap-x snap-mandatory">
-                <!-- Fruits sẽ được JS render -->
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="initArena(true)">Tạo Phòng</button>
+                <button class="btn btn-secondary" onclick="initArena(false)">Vào ID</button>
             </div>
-        </div>
-
-        <!-- Result -->
-        <div id="result" class="hidden text-center mb-10">
-            <p class="text-yellow-300 text-xl mb-3">Bạn vừa roll được:</p>
-            <div id="result-card" class="inline-block fruit-card rounded-3xl p-6 text-center">
-                <img id="result-img" class="w-32 h-32 mx-auto mb-4" src="">
-                <div id="result-name" class="text-4xl font-bold mb-1"></div>
-                <div id="result-rarity" class="text-2xl font-semibold"></div>
-            </div>
-        </div>
-
-        <!-- Spin Button + Cooldown -->
-        <div class="flex flex-col items-center gap-6">
-            <button onclick="startGacha()" id="spin-btn"
-                    class="px-20 py-8 text-3xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 text-black rounded-3xl shadow-2xl hover:scale-110 transition-all flex items-center gap-5">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                <span>SPIN GACHA</span>
-            </button>
-
-            <div id="cooldown-box" class="hidden text-center">
-                <p class="text-orange-300 text-lg">Chờ để spin tiếp...</p>
-                <div class="text-5xl font-mono font-bold text-orange-400" id="countdown">30</div>
-            </div>
-        </div>
-
-        <div class="text-center mt-16 text-xs text-gray-400">
-            Cooldown 30 giây • Mythical cực hiếm
+            <p id="error-log" style="color: var(--wolf); margin-top: 20px; font-size: 13px; font-weight: 700; display: none;">Vui lòng nhập tên!</p>
         </div>
     </div>
 
+    <div id="main-app">
+        <header>
+            <div class="room-badge">ROOM<span>#<b id="room-id">0000</b></span></div>
+            <div class="game-status" id="game-phase-text">LOBBY WAITING</div>
+            <button id="master-start-btn" class="btn btn-primary" style="display:none; padding: 12px 35px; border-radius: 15px;" onclick="startTheMatch()">Bắt Đầu Trận</button>
+        </header>
+
+        <main>
+            <div id="player-grid">
+                </div>
+
+            <div class="sidebar">
+                <div class="sidebar-header">Nhật ký trận đấu</div>
+                <div id="game-feed">
+                    </div>
+                <div id="dynamic-hint" style="padding: 20px; text-align: center; background: var(--accent); color: white; font-weight: 800; font-size: 12px; letter-spacing: 1px;">
+                    ĐANG CHỜ NGƯỜI CHƠI SẴN SÀNG...
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="my-role-info">
+                <div class="role-label" id="footer-role-display">VAI TRÒ: ???</div>
+            </div>
+            <div style="text-align: right;">
+                <p style="font-size: 12px; color: var(--text-sub); font-weight: 700;">Hệ thống lật thẻ bài tự động</p>
+                <p style="font-size: 10px; color: var(--border); margin-top: 5px;">Build v2.6.0 Stable</p>
+            </div>
+        </footer>
+    </div>
+
+    <div id="night-overlay">
+        <div class="timer-circle" id="global-countdown">15</div>
+        <div class="phase-instruction" id="overlay-instruction">ĐÊM ĐANG XUỐNG...</div>
+    </div>
+
     <script>
-        const fruitsData = [
-            { id: 1, name: "Creation", rarity: "Legendary", color: "text-purple-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/8/8a/Portal_Fruit.png/revision/latest?cb=20231027115746" },
-            { id: 2, name: "Quake", rarity: "Legendary", color: "text-blue-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/4/42/Quake_Fruit.png/revision/latest?cb=20231027115754" },
-            { id: 3, name: "Kitsune", rarity: "Mythical", color: "text-pink-500", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/6/65/Kitsune_Fruit.png/revision/latest/scale-to-width-down/1200?cb=20241223162956" },
-            { id: 4, name: "Spirit", rarity: "Mythical", color: "text-cyan-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/6/66/Spirit_Fruit.png/revision/latest?cb=20240304190559" },
-            { id: 5, name: "T-Rex", rarity: "Mythical", color: "text-red-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/d/d9/T-Rex_Fruit.png/revision/latest?cb=20231226191220" },
-            { id: 6, name: "Dragon", rarity: "Mythical", color: "text-orange-500", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/c/c7/Dragon.png/revision/latest/scale-to-width/360?cb=20241231011212" },
-            { id: 7, name: "Dough", rarity: "Mythical", color: "text-rose-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/0/02/Dough_Fruit.png/revision/latest?cb=20231210155057" },
-            { id: 8, name: "Venom", rarity: "Mythical", color: "text-violet-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/d/d2/Venom_Fruit.png/revision/latest/scale-to-width-down/400?cb=20231027120425" },
-            { id: 9, name: "Shadow", rarity: "Legendary", color: "text-indigo-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/5/58/Shadow_Fruit.png/revision/latest?cb=20241229033053" },
-            { id: 10, name: "Buddha", rarity: "Legendary", color: "text-amber-400", img: "https://static.wikia.nocookie.net/roblox-blox-piece/images/d/df/Buddha_Fruit.png/revision/latest?cb=20231027115325" }
-        ];
+        /**
+         * WOLVESVILLE MASTER LOGIC ENGINE
+         * PHÁT TRIỂN BỞI GEMINI - 2026
+         */
 
-        let isSpinning = false;
-        let cooldown = 30;
-        let timerInterval = null;
+        const GAME_CONFIG = {
+            roles: {
+                'MA SÓI': { img: 'https://static.thuthuatchoi.com/media/photos/shares/Boardgame/masoi/la-bai-ma-soi.jpg', color: '#ff4d4d' },
+                'TIÊN TRI': { img: 'https://static.thuthuatchoi.com/media/photos/shares/Boardgame/masoi/huong-dan-choi-ma-soi4.jpg', color: '#3498db' },
+                'BẢO VỆ': { img: 'https://static.thuthuatchoi.com/media/photos/shares/Boardgame/masoi/la-bai-bao-ve.jpg', color: '#2ecc71' },
+                'THỢ SĂN': { img: 'https://static.thuthuatchoi.com/media/photos/shares/Boardgame/masoi/la-bai-tho-san.jpg', color: '#f1c40f' },
+                'DÂN LÀNG': { img: 'https://static.thuthuatchoi.com/media/photos/shares/Boardgame/masoi/la-bai-dan-lang.jpg', color: '#94a3b8' }
+            },
+            maxPlayers: 8,
+            nightDuration: 15,
+            dayDuration: 30
+        };
 
-        function renderFruitBar() {
-            const container = document.getElementById('fruit-bar');
-            container.innerHTML = '';
+        let state = {
+            roomId: '',
+            isHost: false,
+            players: [],
+            me: null,
+            phase: 'lobby',
+            dayCount: 1,
+            activeRoleTurn: '',
+            actions: { kill: null, protect: null, vote: null },
+            timer: null
+        };
 
-            fruitsData.forEach(fruit => {
-                const card = document.createElement('div');
-                card.className = `fruit-card min-w-[160px] snap-center rounded-3xl p-4 text-center flex-shrink-0`;
-                if (fruit.rarity === "Mythical") card.classList.add('mythical');
-                if (fruit.rarity === "Legendary") card.classList.add('legendary');
+        // Khởi tạo phòng
+        function initArena(isHost) {
+            const name = document.getElementById('username-input').value.trim();
+            if(!name) {
+                document.getElementById('error-log').style.display = 'block';
+                return;
+            }
 
-                card.innerHTML = `
-                    <img src="${fruit.img}" class="w-24 h-24 mx-auto mb-3 object-contain">
-                    <div class="font-bold text-xl mb-1">${fruit.name}</div>
-                    <div class="${fruit.color} text-sm font-semibold">${fruit.rarity}</div>
+            state.isHost = isHost;
+            state.roomId = isHost ? Math.floor(1000 + Math.random() * 9000).toString() : prompt("Nhập mã phòng ID (4 chữ số):");
+            if(!state.roomId) return;
+
+            // Giả lập dữ liệu người chơi
+            state.players = [
+                { id: 0, name: name + " (BẠN)", isMe: true, alive: true, role: '', seed: name, votes: 0 },
+                { id: 1, name: "Shadow_Hunter", isMe: false, alive: true, role: '', seed: 'S1', votes: 0 },
+                { id: 2, name: "Luna_Witch", isMe: false, alive: true, role: '', seed: 'L2', votes: 0 },
+                { id: 3, name: "Alpha_Wolf", isMe: false, alive: true, role: '', seed: 'A3', votes: 0 },
+                { id: 4, name: "Silent_Ghost", isMe: false, alive: true, role: '', seed: 'G4', votes: 0 },
+                { id: 5, name: "Misty_Rose", isMe: false, alive: true, role: '', seed: 'M5', votes: 0 },
+                { id: 6, name: "Drake_Flame", isMe: false, alive: true, role: '', seed: 'D6', votes: 0 },
+                { id: 7, name: "Zoe_Crystal", isMe: false, alive: true, role: '', seed: 'Z7', votes: 0 }
+            ];
+            state.me = state.players[0];
+
+            // Chuyển UI
+            document.getElementById('entry-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('entry-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'grid';
+                setTimeout(() => document.getElementById('main-app').classList.add('show'), 50);
+                document.getElementById('room-id').innerText = state.roomId;
+                if(isHost) document.getElementById('master-start-btn').style.display = 'block';
+                
+                renderPlayers();
+                addLog(`Bạn đã kết nối thành công vào phòng #${state.roomId}`, 'sys');
+            }, 800);
+        }
+
+        // Render danh sách người chơi
+        function renderPlayers() {
+            const grid = document.getElementById('player-grid');
+            grid.innerHTML = '';
+            
+            state.players.forEach(p => {
+                const tile = document.createElement('div');
+                tile.className = `player-tile ${p.alive ? '' : 'dead'} ${p.isMe ? 'is-me' : ''}`;
+                tile.id = `p-tile-${p.id}`;
+                
+                tile.innerHTML = `
+                    <div class="vote-badge" id="v-count-${p.id}">0</div>
+                    <div class="card-container">
+                        <div class="card-side card-front">
+                            <img src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${p.seed}" class="avatar">
+                            <div class="player-name">${p.name}</div>
+                            <div class="player-meta">${p.alive ? 'Đang sống' : 'Đã chết'}</div>
+                        </div>
+                        <div class="card-side card-back">
+                            <img src="${p.role ? GAME_CONFIG.roles[p.role].img : ''}" class="role-img" id="role-img-${p.id}">
+                        </div>
+                    </div>
                 `;
-                container.appendChild(card);
+                
+                tile.onclick = () => handlePlayerSelection(p);
+                grid.appendChild(tile);
             });
         }
 
-        function getRandomFruit() {
-            const weights = [10, 15, 20, 25, 30]; // Common to Mythical
-            let total = weights.reduce((a,b)=>a+b, 0);
-            let rand = Math.random() * total;
+        // Bắt đầu trận đấu
+        async function startTheMatch() {
+            document.getElementById('master-start-btn').style.display = 'none';
             
-            let sum = 0;
-            for (let i = 0; i < fruitsData.length; i++) {
-                sum += (fruitsData[i].rarity === "Mythical" ? 8 : 
-                       fruitsData[i].rarity === "Legendary" ? 15 : 25);
-                if (rand <= sum) return fruitsData[i];
-            }
-            return fruitsData[fruitsData.length - 1];
+            // Chia bài ngẫu nhiên
+            let deck = ['MA SÓI', 'MA SÓI', 'TIÊN TRI', 'BẢO VỆ', 'THỢ SĂN', 'DÂN LÀNG', 'DÂN LÀNG', 'DÂN LÀNG'].sort(() => Math.random() - 0.5);
+            state.players.forEach((p, i) => {
+                p.role = deck[i];
+            });
+
+            renderPlayers(); // Update để gán link ảnh vào thẻ
+
+            // HIỆU ỨNG LẬT THẺ CỦA MÌNH
+            await sleep(500);
+            const myTile = document.getElementById(`p-tile-${state.me.id}`);
+            myTile.classList.add('revealed', 'active-focus');
+            document.getElementById('footer-role-display').innerText = "VAI TRÒ: " + state.me.role;
+            document.getElementById('footer-role-display').style.color = GAME_CONFIG.roles[state.me.role].color;
+            
+            addLog(`Trận đấu bắt đầu! Bạn nhận vai trò: ${state.me.role}`, 'sys');
+            
+            await sleep(3000);
+            mainGameLoop();
         }
 
-        async function startGacha() {
-            if (isSpinning) return;
-            isSpinning = true;
+        // Vòng lặp game chính
+        async function mainGameLoop() {
+            while(true) {
+                // PHASE ĐÊM
+                state.phase = 'night';
+                document.getElementById('night-overlay').style.display = 'flex';
+                document.getElementById('game-phase-text').innerText = `BAN ĐÊM - NGÀY ${state.dayCount}`;
+                
+                await runActionTurn('MA SÓI', 'Đàn Sói đang tìm con mồi...');
+                await runActionTurn('BẢO VỆ', 'Bảo vệ đang canh giữ giấc ngủ...');
+                await runActionTurn('TIÊN TRI', 'Tiên tri đang soi thấu sự thật...');
+                
+                // PHASE SÁNG
+                document.getElementById('night-overlay').style.display = 'none';
+                document.getElementById('game-phase-text').innerText = `BAN NGÀY - NGÀY ${state.dayCount}`;
+                processNightResolution();
+                
+                await sleep(5000); // Đợi đọc tin tức sáng
 
-            const btn = document.getElementById('spin-btn');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ĐANG QUAY...`;
+                // PHASE VOTE
+                state.phase = 'vote';
+                addLog("--- BẮT ĐẦU PHIÊN BIỂU QUYẾT ---", 'sys');
+                await runActionTurn('VOTE', 'Hãy chọn người bạn nghi ngờ là Ma Sói!');
+                processVoteResolution();
 
-            document.getElementById('result').classList.add('hidden');
-
-            // Animation cuộn ngang
-            const container = document.getElementById('fruit-bar');
-            let scrollSpeed = 35;
-            let scrollPos = 0;
-            const targetFruit = getRandomFruit();
-            const targetIndex = fruitsData.findIndex(f => f.id === targetFruit.id);
-
-            const animation = setInterval(() => {
-                scrollPos += scrollSpeed;
-                container.scrollLeft = scrollPos;
-
-                // Giảm tốc dần
-                if (scrollPos > 800) scrollSpeed = Math.max(4, scrollSpeed - 1.2);
-
-                // Dừng gần target
-                if (scrollSpeed <= 6 && Math.abs(container.scrollLeft - (targetIndex * 180)) < 60) {
-                    clearInterval(animation);
-                    showResult(targetFruit);
-                }
-            }, 16);
-        }
-
-        function showResult(fruit) {
-            isSpinning = false;
-
-            document.getElementById('result-img').src = fruit.img;
-            document.getElementById('result-name').textContent = fruit.name;
-            document.getElementById('result-rarity').innerHTML = `
-                <span class="${fruit.color}">${fruit.rarity}</span>
-            `;
-            document.getElementById('result').classList.remove('hidden');
-
-            // Confetti nếu Mythical
-            if (fruit.rarity === "Mythical") launchConfetti();
-
-            startCooldown();
-        }
-
-        function startCooldown() {
-            let time = cooldown;
-            const countdownEl = document.getElementById('countdown');
-            const box = document.getElementById('cooldown-box');
-            box.classList.remove('hidden');
-
-            if (timerInterval) clearInterval(timerInterval);
-
-            timerInterval = setInterval(() => {
-                time--;
-                countdownEl.textContent = time;
-
-                if (time <= 0) {
-                    clearInterval(timerInterval);
-                    box.classList.add('hidden');
-                    const btn = document.getElementById('spin-btn');
-                    btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-spinner"></i> <span>SPIN GACHA</span>`;
-                }
-            }, 1000);
-        }
-
-        function launchConfetti() {
-            for (let i = 0; i < 200; i++) {
-                setTimeout(() => {
-                    const c = document.createElement('div');
-                    c.style.cssText = `position:fixed; left:${Math.random()*100}vw; top:-20px; width:12px; height:12px; 
-                                      background:${['#ff00ff','#00f7ff','#ffff00'][Math.floor(Math.random()*3)]}; 
-                                      z-index:9999; border-radius:50%; opacity:0.9;`;
-                    document.body.appendChild(c);
-                    
-                    let y = 0;
-                    const fall = setInterval(() => {
-                        y += 10 + Math.random() * 8;
-                        c.style.top = y + 'px';
-                        c.style.transform = `rotate(${y*6}deg)`;
-                        if (y > window.innerHeight + 50) {
-                            clearInterval(fall);
-                            c.remove();
-                        }
-                    }, 20);
-                }, i * 2);
+                await sleep(5000);
+                state.dayCount++;
             }
         }
 
-        // Khởi tạo
-        window.onload = () => {
-            renderFruitBar();
-            console.log('%cGacha Fruits Horizontal - Siêu đẹp như yêu cầu!', 'color:#ff00ff; font-size:16px');
-        };
+        // Chạy lượt hành động
+        async function runActionTurn(role, instruction) {
+            state.activeRoleTurn = role;
+            document.getElementById('overlay-instruction').innerText = instruction;
+            
+            // Nếu đến lượt của mình hoặc phiên Vote toàn dân
+            if((state.me.role === role || role === 'VOTE') && state.me.alive) {
+                document.getElementById('night-overlay').classList.add('is-active-turn');
+                addLog(`Đến lượt bạn hành động (${role})!`, 'sys');
+                enableTargeting();
+                await startTimer(GAME_CONFIG.nightDuration);
+                disableTargeting();
+                document.getElementById('night-overlay').classList.remove('is-active-turn');
+            } else {
+                // Giả lập bot chơi
+                await startTimer(5);
+                performBotAction(role);
+            }
+        }
+
+        // Xử lý khi click chọn người chơi
+        function handlePlayerSelection(p) {
+            const tile = document.getElementById(`p-tile-${p.id}`);
+            if(!tile.classList.contains('targetable')) return;
+
+            // Reset UI chọn
+            document.querySelectorAll('.player-tile').forEach(t => t.style.borderColor = '');
+            tile.style.borderColor = 'white';
+
+            if(state.activeRoleTurn === 'MA SÓI') {
+                state.actions.kill = p;
+                addLog(`Bạn đã chọn mục tiêu tiêu diệt: ${p.name}`, 'wolf');
+            } else if(state.activeRoleTurn === 'BẢO VỆ') {
+                state.actions.protect = p;
+                addLog(`Bạn đang bảo vệ: ${p.name}`, 'sys');
+            } else if(state.activeRoleTurn === 'TIÊN TRI') {
+                addLog(`Kết quả soi: ${p.name} là ${p.role === 'MA SÓI' ? 'MA SÓI' : 'NGƯỜI TỐT'}`, 'sys');
+            } else if(state.activeRoleTurn === 'VOTE') {
+                p.votes++;
+                addLog(`Bạn đã bỏ phiếu cho ${p.name}`, 'vote');
+                updateVoteUI();
+            }
+
+            // Kết thúc lượt sớm nếu đã chọn (Tùy chọn)
+            window.manualNext();
+        }
+
+        // Đồng hồ đếm ngược
+        function startTimer(seconds) {
+            return new Promise(resolve => {
+                window.manualNext = resolve;
+                let timeLeft = seconds;
+                const display = document.getElementById('global-countdown');
+                display.innerText = timeLeft;
+
+                const interval = setInterval(() => {
+                    timeLeft--;
+                    display.innerText = timeLeft;
+                    if(timeLeft <= 0) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 1000);
+
+                const originalResolve = resolve;
+                window.manualNext = () => {
+                    clearInterval(interval);
+                    originalResolve();
+                };
+            });
+        }
+
+        // Xử lý kết quả ban đêm
+        function processNightResolution() {
+            addLog("--- TRỜI ĐÃ SÁNG ---", 'sys');
+            let killed = state.actions.kill;
+            let protected = state.actions.protect;
+
+            if(killed && killed.id !== (protected ? protected.id : -1)) {
+                killed.alive = false;
+                addLog(`${killed.name} đã bị Ma Sói cắn chết đêm qua!`, 'wolf');
+            } else {
+                addLog("Một đêm bình yên, không ai thiệt mạng.", 'sys');
+            }
+
+            renderPlayers();
+            // Reset actions
+            state.actions = { kill: null, protect: null, vote: null };
+        }
+
+        // Xử lý kết quả Vote
+        function processVoteResolution() {
+            let sorted = [...state.players].sort((a,b) => b.votes - a.votes);
+            let top = sorted[0];
+
+            if(top.votes > 0) {
+                top.alive = false;
+                addLog(`${top.name} bị treo cổ với ${top.votes} phiếu biểu quyết!`, 'vote');
+                if(top.role === 'THỢ SĂN') {
+                    addLog("Thợ Săn đã rút súng bắn hạ một người khác trước khi chết!", 'wolf');
+                    // Logic Thợ Săn kéo theo người (random cho nhanh)
+                    let target = state.players.filter(p => p.alive && p.id !== top.id)[0];
+                    if(target) target.alive = false;
+                }
+            } else {
+                addLog("Không ai bị treo cổ vì không có đủ phiếu.", 'sys');
+            }
+
+            // Reset vote count
+            state.players.forEach(p => p.votes = 0);
+            updateVoteUI();
+            renderPlayers();
+        }
+
+        // Helper UI
+        function enableTargeting() {
+            state.players.forEach(p => {
+                if(p.alive && !p.isMe) {
+                    document.getElementById(`p-tile-${p.id}`).classList.add('targetable');
+                }
+            });
+        }
+
+        function disableTargeting() {
+            document.querySelectorAll('.player-tile').forEach(t => t.classList.remove('targetable'));
+        }
+
+        function updateVoteUI() {
+            state.players.forEach(p => {
+                const b = document.getElementById(`v-count-${p.id}`);
+                if(p.votes > 0) {
+                    b.innerText = p.votes;
+                    b.style.display = 'flex';
+                } else {
+                    b.style.display = 'none';
+                }
+            });
+        }
+
+        function addLog(msg, type) {
+            const container = document.getElementById('game-feed');
+            const div = document.createElement('div');
+            div.className = `feed-item ${type}`;
+            div.innerHTML = `<b>[SYSTEM]</b> ${msg}`;
+            container.prepend(div);
+        }
+
+        function performBotAction(role) {
+            const aliveOthers = state.players.filter(p => p.alive && !p.isMe);
+            if(aliveOthers.length === 0) return;
+            const rand = aliveOthers[Math.floor(Math.random() * aliveOthers.length)];
+
+            if(role === 'MA SÓI') state.actions.kill = rand;
+            if(role === 'VOTE') rand.votes++;
+        }
+
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
     </script>
 </body>
 </html>
